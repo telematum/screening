@@ -1,29 +1,52 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"github.com/go-chi/chi"
 	"net/http"
 )
 
-func setupJsonApi() {
-	http.HandleFunc("/createUser", func(w http.ResponseWriter, r *http.Request) {
-		// create mysql connection
-		conn := createConnection()
-		name := r.FormValue("name")
-		email := r.FormValue("email")
-		query := "INSERT INTO users (name, email) VALUES (" + name + ", " + email + ")"
-		result, err := conn.Exec(query)
-		fmt.Println("result ", result, " err ", err.Error())
-		w.Write([]byte("Created user successfully!"))
-	})
-	http.HandleFunc("/updateUser", func(w http.ResponseWriter, r *http.Request) {
-		// create mysql connection
-		conn := createConnection()
-		name := r.FormValue("name")
-		email := r.FormValue("email")
-		query := "Update users set name=" + name + ", email=" + email + " where id=" + r.FormValue("id")
-		result, err := conn.Exec(query)
-		fmt.Println("result ", result, " err ", err.Error())
-		w.Write([]byte("User updated successfully!"))
-	})
+func (s *Server) setupRoutes() {
+	s.router.Post("/createUser", s.createUserHandler)
+	s.router.Put("/updateUser/{id}", s.updateUserHandler)
+}
+
+func (s *Server) createUserHandler(w http.ResponseWriter, r *http.Request) {
+	conn := s.getDBConnection()
+	defer conn.Close()
+
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Bad Request: Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	query := `INSERT INTO users (name, email) VALUES ($1, $2)`
+	_, err := conn.Exec(query, user.Name, user.Email)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte("Created user successfully!"))
+}
+
+func (s *Server) updateUserHandler(w http.ResponseWriter, r *http.Request) {
+	conn := s.getDBConnection()
+	defer conn.Close()
+
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	query := `UPDATE users SET name=$1, email=$2 WHERE id=$3`
+	_, err := conn.Exec(query, user.Name, user.Email, chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte("User updated successfully!"))
 }
