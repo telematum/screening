@@ -1,43 +1,53 @@
 package main
 
 import (
+	"database/sql"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	_ "github.com/go-sql-driver/mysql"
+	"log"
 	"net/http"
+	"sync"
+	"time"
 )
 
-func main() {
-	//Usage of default handler is not recommended
-	// as default serveMux is a global variable and any package can access it and modify it
-	setupJsonApi()
-	// Since we are using NewServeMux, we can use HandleFunc
-	// HandleFunc registers the handler function for the given pattern in the DefaultServeMux.
-	// The documentation for ServeMux explains how patterns are matched.
-	http.ListenAndServe(":80", nil)
-	// There is no Timeout Provided. So, it will wait for the request to complete.
-	// Which is not a good practice. since we are connecting to DB and it may take time.
-	// So, we need to provide a timeout.
+type Server struct {
+	router *chi.Mux
+	db     *sql.DB
+	mu     sync.Mutex
+}
 
-	/* it should have been something like this
-	mux := http.NewServeMux()
-	setupJsonApi(mux)
-	srv := &http.Server{
-		Addr:         ":8080",
-		Handler:      mux,
-		ReadTimeout:  10 * time.Second,
+func NewServer() *Server {
+	return &Server{
+		router: chi.NewRouter(),
+	}
+}
+
+func (s *Server) Init() {
+	s.router.Use(middleware.Logger)
+	s.router.Use(middleware.Recoverer)
+
+	s.setupRoutes()
+	s.initDBConnection()
+}
+
+func (s *Server) Start(port string) error {
+	server := &http.Server{
+		Addr:         port,
+		Handler:      s.router,
+		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-		err := srv.ListenAndServe()
-	if err != nil {
-		log.Fatal(err)
+
+	log.Printf("Server started on port %s", port)
+	return server.ListenAndServe()
+}
+
+func main() {
+	server := NewServer()
+	server.Init()
+
+	if err := server.Start(":8080"); err != nil {
+		log.Fatalf("Error starting server: %v", err)
 	}
-	*/
-
-	//Usage of middleware is recommended. For example,
-	// we can use middleware to log the request details
-	// we can use middleware to handle the errors
-	// we can use middleware to handle the panic
-	// we can use middleware to handle the timeouts
-	// we can use middleware to handle the authentication
-	// we can use middleware to handle the authorization
-
-	// It is recommended to use a Packages like gorilla/mux or go-Chi for routing.
 }

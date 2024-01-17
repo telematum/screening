@@ -3,27 +3,28 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
 )
 
-// Make the name of the function more meaningful, and describe what it does.
-// so instead of createConnection, we can use createDBConnection or createDBClient
-// createConnection creates a connection to mysql database
-func createConnection() *sql.DB {
+func (s *Server) getDBConnection() *sql.DB {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	// it is not recommended to hardcode the credentials.
-	// we should use environment variables to store the credentials.
-	// we should not use root user to connect to the database.
-	// we should create a user with limited privileges and use that user to connect to the database.
-	db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/test")
-	// handling the error is important.
-	// it is not recommended to print the error what is the error is nil.
-	fmt.Println("sql open " + err.Error())
-	// it will panic the code.
+	return s.db
+}
 
-	// Handle error something like this
-	// if err != nil {
-	// 	fmt.Println("sql open " + err.Error())
-	// 	return nil
-	// }
-	return db
+func (s *Server) initDBConnection() {
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+
+	dbSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
+	conn, err := sql.Open("mysql", dbSource)
+	if err != nil {
+		log.Fatalf("Failed to connect to the database: %v", err)
+	}
+	s.db = conn
 }
