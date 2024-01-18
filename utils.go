@@ -7,8 +7,8 @@ import (
 
 // createConnection creates a connection to mysql database
 func createConnection() *sql.DB {
-	// Don't Hard code values as like mentioned earlier.
-	// The password shouldn't hardcoded in the connection string as this is not a good practice.
+	// Don't Hard code values as mentioned earlier.
+	// The password shouldn't be hardcoded in the connection string as this is not secure.
 	// Create a structure in go and store all the values required to make the db connection.
 	/*
 		type Database struct {
@@ -17,17 +17,23 @@ func createConnection() *sql.DB {
 			port 	 uint32,
 			addr     string,
 			dbname 	 string,
+			SQLcon	 *sql.DB
 		}
 
+		// Additionally Create a Init function to initialize the structure
+		ex.
+		   func  InitDB(usr, pswd, addr string, port uint32) *Database{} {}
+
 		you can pass this structure as a method receiver to all the methods
-		ex. func(db *Database) CreateConnection() *sql.DB {}
+		ex.
+			func(db *Database) CreateConnection() error {}
 
 	*/
 	db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/test")
 	// Don't print the errors directly
 	/* Errors in golang are handled like this
 	if err != nil {
-		// Print the error or return the error
+		return fmt.Errorf("DB Connection Error:", err)
 	}
 	*/
 	fmt.Println("sql open " + err.Error())

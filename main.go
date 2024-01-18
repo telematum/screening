@@ -18,13 +18,17 @@ func main() {
 	// Use routing packages to handle the routes
 
 	// Use a logger package to debug the code easily,
-	// You can use the standard log library from go or a third party logging package like zap, logrun or Zerolog Which give you        additional features like setting the log level.
+	// You can use the standard log library from go or a third party logging package like zap, logrun or Zerolog Which give you        additional features like setting the log level, etc.
 
 	/*
 	 Do not hard code values.
 	 Hard coding values can make the code less flexible and requires changes in code if the value needs to be modified in future.
+
 	 Instead of Hard coding values use flag package to pass the value as a command line argument.
-	 You can also use environment variables to set the values
+	 Ex. var port = flag.Int("p",8080, "Enter the Port Number on which you want to run the application")
+
+	 You can also use environment variables to get the values
+	 Ex. os.Getenv("APP_PORT") to get the port number
 	*/
 	http.ListenAndServe(":80", nil)
 
