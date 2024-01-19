@@ -9,9 +9,12 @@ import (
 	"screening/utils"
 )
 
+// Router to create a user, db connection object as param
 func CreateRoute(conn *sql.DB) {
+	logger := utils.Logger()
 	var responseData utils.ResponseData
 	http.HandleFunc("/createUser", func(w http.ResponseWriter, r *http.Request) {
+		// route only for POST method
 		if r.Method == http.MethodPost {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -27,6 +30,7 @@ func CreateRoute(conn *sql.DB) {
 				responseData.Success = false
 				responseData.Message = "Email attribute missing"
 			} else {
+				// Calling the handler method
 				err = handler.CreateUser(conn, user.Name, user.Email)
 				if err != nil {
 					responseData.Success = false
@@ -42,6 +46,7 @@ func CreateRoute(conn *sql.DB) {
 		}
 		jsonData, jsonError := json.Marshal(responseData)
 		if jsonError != nil {
+			logger.Error().Msg("Error encoding JSON")
 			http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 			return
 		}

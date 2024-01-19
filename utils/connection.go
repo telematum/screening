@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-	"log"
 	"os"
 )
 
 func CreateConnection() *sql.DB {
+	logger := Logger()
+	// Loading envs
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")
 	dbName := os.Getenv("POSTGRES_DB")
@@ -18,15 +19,17 @@ func CreateConnection() *sql.DB {
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		user, password, host, port, dbName,
 	)
-	db, err := sql.Open("postgres", connUrl)
+
+	// DB Connection
+	conn, err := sql.Open("postgres", connUrl)
 	if err != nil {
-		log.Fatal("Error opening database connection:", err)
+		logger.Error().Msg("Error opening database connection: " + err.Error())
 	}
-	err = db.Ping()
+	err = conn.Ping()
 	if err != nil {
-		log.Fatal("Error pinging database:", err)
+		logger.Error().Msg("Error pinging database: " + err.Error())
 	}
-	fmt.Println("Connected to the PostgreSQL database successfully!")
+	logger.Info().Msg("Connected to the PostgreSQL database successfully!")
 
 	// SQL query to create the "users" table
 	query := `
@@ -37,10 +40,10 @@ func CreateConnection() *sql.DB {
 		)`
 
 	// Execute the query
-	_, err = db.Exec(query)
+	_, err = conn.Exec(query)
 	if err != nil {
-		log.Fatal("Error creating table:", err)
+		logger.Error().Msg("Error creating table: " + err.Error())
 	}
 
-	return db
+	return conn
 }

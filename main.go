@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 	"screening/router"
 	"screening/utils"
 
@@ -9,9 +11,14 @@ import (
 )
 
 func main() {
+	//Loading envs
 	godotenv.Load()
-	db := utils.CreateConnection()
-	router.RegisterRoute(db)
-	defer db.Close()
-	http.ListenAndServe(":80", nil)
+	apiPort := os.Getenv("API_PORT")
+	apiPortFmt := fmt.Sprintf(":%s", apiPort)
+
+	// DB Connection and Route registering
+	conn := utils.CreateConnection()
+	router.RegisterRoute(conn)
+	defer conn.Close()
+	http.ListenAndServe(apiPortFmt, nil)
 }

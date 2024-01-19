@@ -4,6 +4,7 @@ import (
 	"database/sql"
 )
 
+// Raw query for updating with some conditional handlings
 func UpdateUser(conn *sql.DB, name string, email string, id int) error {
 	var query string
 	var err error

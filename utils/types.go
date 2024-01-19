@@ -1,5 +1,7 @@
 package utils
 
+// All structs used in this project
+
 type CreateUserType struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
