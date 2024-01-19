@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:latest
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8091:80"
+    depends_on:
+      - db
+volumes:
+  postgres_data:
+
