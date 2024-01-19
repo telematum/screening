@@ -1,14 +1,17 @@
-# docker file for building Go application
-FROM ubuntu:latest
-
-# Install dependencies
-RUN sudo apt install -y git go wget
-
-COPY . /app
+FROM golang:alpine
 
 WORKDIR /app
 
-# Build the application
+COPY . .
+
+RUN go get github.com/lib/pq
+
+RUN go get github.com/joho/godotenv
+
+RUN go get github.com/rs/zerolog/log
+
 RUN go build -o main .
 
-CMD [ "main" ]
+EXPOSE 80
+
+CMD [ "./main" ]
