@@ -5,6 +5,8 @@ import (
 )
 
 func main() {
-	setupJsonApi()
+	db := createConnection()
+	mysqlDAO := NewDAO(db)
+	setupJsonApi(mysqlDAO)
 	http.ListenAndServe(":80", nil)
 }
