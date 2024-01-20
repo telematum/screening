@@ -1,14 +1,16 @@
 # docker file for building Go application
-FROM ubuntu:latest
-
-# Install dependencies
-RUN sudo apt install -y git go wget
-
-COPY . /app
+FROM golang:1.20 AS builder
 
 WORKDIR /app
 
-# Build the application
-RUN go build -o main .
+COPY . .
 
-CMD [ "main" ]
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+
+# Install dependenciesFROM alpine:3.9 as base
+FROM alpine:3.9 as base
+RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add tzdata
+WORKDIR /app
+COPY --from=builder /app/main .
+CMD [ "./main" ]
